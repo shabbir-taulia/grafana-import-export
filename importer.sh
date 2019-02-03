@@ -15,7 +15,7 @@ curl_wrap() {
     HTTP_VERB=$4
     [[ -z "$HTTP_VERB" ]] && HTTP_VERB=POST
 
-    curl --fail -k -X$HTTP_VERB \
+    curl -k -X$HTTP_VERB \
          -H "Content-Type: application/json" \
          -H "Accept: application/json" \
          -H "Authorization: Bearer $KEY" \

@@ -1,0 +1,66 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: grafana-datasources-job
+  annotations:
+    iconClass: icon-openjdk
+    description: Grafana create datasources
+labels:
+  application: grafana
+parameters:
+- description: The name for the application.
+  name: APPLICATION_NAME
+  value: grafana
+- description: The project name for the application.
+  name: PROJECT_NAME
+- description: Default global password
+  name: GLOBAL_PASSWORD
+  value: taulia
+objects:
+- kind: Job
+  apiVersion: batch/v1
+  metadata:
+    name: ${APPLICATION_NAME}
+  spec:
+    template:
+      metadata:
+        name: ${APPLICATION_NAME}
+      spec:
+        containers:
+        - name: create-datasources
+          image: gcr.io/devtools-1/api-tools:latest
+          imagePullPolicy: Always
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -ex
+              /mnt/shared/create_datasource.sh
+          volumeMounts:
+          - name: entrypoint
+            mountPath: /mnt/shared
+          env:
+          - name: API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: cluster-creds
+                key: grafana_api_key
+          - name: grafana_password
+            valueFrom:
+              secretKeyRef:
+                name: cluster-creds
+                key: grafana_reader_password
+        restartPolicy: OnFailure
+        serviceAccountName: grafana
+        serviceAccount: grafana
+        nodeSelector:
+          workload: generic
+        volumes:
+        - name: "entrypoint"
+          configMap:
+            name: grafana-config
+            items:
+            - key: create_datasource.sh
+              path: create_datasource.sh
+              mode: 0755

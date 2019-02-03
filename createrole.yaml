@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: List
+namespace: staging
+items:
+- kind: ClusterRole  # limited to namespace by using 'RoleBinding'
+  apiVersion: v1
+  metadata:
+    name: grafana_exec
+  rules:
+  - apiGroups:
+    - '*'
+    resources:
+    - pods
+    - "pods/exec"
+    verbs:
+    - create
+    - list
+    - get
+- kind: RoleBinding  # automatically namespaced to current project
+  apiVersion: v1
+  metadata:
+    name: grafana
+  groupNames: null
+  subjects:
+    - kind: ServiceAccount
+      name: grafana
+  roleRef:
+    kind: ClusterRole
+    name: grafana_exec
